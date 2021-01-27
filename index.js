@@ -1,11 +1,11 @@
 'use strict'
 
 const m = require('mithril/render/hyperscript')
-const domino = require('domino')
-const Event = require('domino/lib/Event')
+// const domino = require('domino')
+// const Event = require('domino/lib/Event')
 const code = require('yields-keycode')
 const Vnode = require('mithril/render/vnode')
-const formatHtml = require('pretty-html-log').highlight
+// const formatHtml = require('pretty-html-log').highlight
 
 function isString(thing) {
   return Object.prototype.toString.call(thing) === '[object String]'
@@ -50,7 +50,7 @@ function isClass(thing) {
 
 function consoleLogHtml(els) {
   // eslint-disable-next-line no-console
-  console.log(els.map(el => formatHtml(el.outerHTML)).join('---------\n'))
+  console.log(els.map(el => /*formatHtml(*/el.outerHTML/*)*/).join('---------\n'))
 }
 
 function scan(api) {
@@ -233,8 +233,8 @@ function scan(api) {
 }
 
 module.exports = function init(componentOrRootNode, nodeOrAttrs) {
-  const $window = domino.createWindow('')
-  const render = require('mithril/render/render')($window)
+  const render = require('mithril/render/render')(window)
+  
   let rootNode = {
     view: () => {
       return isComponent(componentOrRootNode)
@@ -243,7 +243,8 @@ module.exports = function init(componentOrRootNode, nodeOrAttrs) {
     },
   }
 
-  const redraw = () => render($window.document.body, Vnode(rootNode))
+  const rootEl = document.createElement('div');
+  const redraw = () => render(rootEl, Vnode(rootNode))
 
   redraw()
 
@@ -254,6 +255,6 @@ module.exports = function init(componentOrRootNode, nodeOrAttrs) {
   return scan({
     redraw,
     onremove,
-    rootEl: $window.document.body,
+    rootEl
   })
 }
