@@ -73,7 +73,9 @@ function scan(api) {
   }
 
   function contains(value, node) {
-    return !!find(':contains(' + value + ')', node).length
+    return node.innerHTML.includes(value);
+    // :contains() must have been a domino thing, because it didn't make it to web standard
+    // return !!find(':contains(' + value + ')', node).length
   }
 
   function shouldHaveAtLeast(minCount, selector) {
