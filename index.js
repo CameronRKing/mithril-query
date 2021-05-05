@@ -53,8 +53,50 @@ function consoleLogHtml(els) {
   console.log(els.map(el => /*formatHtml(*/el.outerHTML/*)*/).join('---------\n'))
 }
 
+
 function scan(api) {
   const rootEl = api.rootEl
+  api.vnodes = rootEl.vnodes;
+
+  
+  // $queries return vnodes, not dom nodes
+  const queries = (() => {
+    function visit(vnode, fn) {
+      fn(vnode);
+  
+      if (vnode.instance) visit(vnode.instance, fn);
+      if (vnode.children) vnode.children.forEach(child => visit(child, fn));
+    }
+  
+    function gather(vnodes, test) {
+      const gathered = [];
+      vnodes.forEach(vnode => {
+        visit(vnode, child => {
+          if (test(child)) gathered.push(child);
+        });      
+      });
+      return gathered;
+    }
+
+    const queries = {
+      dmq: (name) => (node) => node.attrs && node.attrs['data-mq'] == name,
+      is: (name) => (node) => node.tag == name || (node.tag.view && node.tag.view.name == name)
+    }
+
+    const $$ = (test) => gather(api.vnodes, test);
+    const $ = (test) => $$(test)[0];
+
+    const allQueries = { $$, $ };
+
+    Object.entries(queries).forEach(([queryName, testFn]) => {
+      allQueries[`$${queryName}`] = (arg) => $(testFn(arg));
+      allQueries[`$$${queryName}`] = (arg) => $$(testFn(arg));
+    });
+
+    return allQueries;
+  })();
+
+  Object.assign(api, queries);
 
   function find(selectorString, node) {
     return Array.prototype.slice.call(node.querySelectorAll(selectorString))
